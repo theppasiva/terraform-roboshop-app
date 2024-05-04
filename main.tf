@@ -1,3 +1,4 @@
+
 resource "aws_lb_target_group" "component" {
   name     = "${local.name}-${var.tags.Component}"
   port     = 8080
@@ -54,7 +55,7 @@ resource "null_resource" "component" {
     # Bootstrap script called with private_ip of each node in the cluster
     inline = [
       "chmod +x /tmp/bootstrap.sh",
-      "sudo sh /tmp/bootstrap.sh ${var.tags.Component} ${var.environment}"
+      "sudo sh /tmp/bootstrap.sh ${var.tags.Component} ${var.environment}}"
     ]
   }
 }
@@ -82,7 +83,7 @@ resource "null_resource" "component_delete" {
     command = "aws ec2 terminate-instances --instance-ids ${module.component.id}"
   }
 
-    depends_on = [ aws_ami_from_instance.component ]
+  depends_on = [ aws_ami_from_instance.component]
 }
 
 resource "aws_launch_template" "component" {
@@ -92,7 +93,6 @@ resource "aws_launch_template" "component" {
   instance_initiated_shutdown_behavior = "terminate"
   instance_type = "t2.micro"
   update_default_version = true
-
 
   vpc_security_group_ids = [var.component_sg_id]
 
@@ -115,6 +115,7 @@ resource "aws_autoscaling_group" "component" {
   desired_capacity          = 2
   vpc_zone_identifier       = var.private_subnet_ids
   target_group_arns = [ aws_lb_target_group.component.arn ]
+  
   launch_template {
     id      = aws_launch_template.component.id
     version = aws_launch_template.component.latest_version
@@ -137,7 +138,6 @@ resource "aws_autoscaling_group" "component" {
   timeouts {
     delete = "15m"
   }
-
 }
 
 resource "aws_lb_listener_rule" "component" {
@@ -167,6 +167,6 @@ resource "aws_autoscaling_policy" "component" {
       predefined_metric_type = "ASGAverageCPUUtilization"
     }
 
-    target_value = 5.0 #in general it's 75 or 80
+    target_value = 5.0
   }
 }
